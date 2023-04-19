@@ -5,7 +5,7 @@ const ROSLIB = require('roslib');
 
 // Initialize ROS connection
 const ros = new ROSLIB.Ros({
-  url: '192.168.5.90:11311'
+  url: 'ws://192.168.5.90:9090'
 });
 
 ros.on('connection', () => {
