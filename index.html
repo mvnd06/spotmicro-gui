@@ -4,16 +4,19 @@
     <meta charset="utf-8">
     <title>Robot Data Display</title>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-    <link rel="stylesheet" href="public/status-bar.css">
+    <link rel="stylesheet" href="public/style.css">
   </head>
   <body>
     <div class="container-fluid mt-4">
       <h1>Robot Data Display</h1>
-      <div class="alert alert-secondary" role="alert" id="status-bar">
-        System Status:
-        <span class="badge badge-light mr-2" id="motion-status-label">Motion</span>
-        <span class="badge badge-light mr-2" id="display-status-label">Display</span>
-        <span class="badge badge-light mr-2" id="gui-status-label">GUI</span>
+      <div class="alert alert-secondary d-flex justify-content-between align-items-center" role="alert" id="status-bar">
+        <span>
+          <span id="badge-label">System Status:</span>
+          <span class="badge badge-light mr-2" id="motion-status-label">Motion</span>
+          <span class="badge badge-light mr-2" id="display-status-label">Display</span>
+          <span class="badge badge-light mr-2" id="rosbridge-status-label">ROS Bridge</span>
+        </span>
+        <button type="button" class="btn btn-primary">Action Button</button>
       </div>
       <hr>
       <div class="row">

@@ -4,7 +4,6 @@ const socket = new WebSocket('ws://localhost:8080');
 // When a message is received on the WebSocket connection, update the visualization
 socket.addEventListener('message', (event) => {
   const message = JSON.parse(event.data);
-  // console.log(data);
   if (message.topic == 'status') {
     processStatusMessage(message.data)
   }
@@ -13,29 +12,15 @@ socket.addEventListener('message', (event) => {
 function processStatusMessage(statusData) {
   console.log('status received')
   console.log(statusData)
-  const motionStatus = statusData.motion ? 'running' : 'stopped';
-  const displayStatus = statusData.display ? 'running' : 'stopped';
-  const guiStatus = statusData.gui ? 'running' : 'stopped';
+  const motionStatus = statusData.motion
+  const displayStatus = statusData.display
+  const bridgeStatus = statusData.rosbridge
 
-  const motionCircle = document.getElementById('motion-status-label');
-  const displayCircle = document.getElementById('display-status-label');
-  const guiCircle = document.getElementById('gui-status-label');
+  const motionBadge = document.getElementById('motion-status-label');
+  const displayBadge = document.getElementById('display-status-label');
+  const bridgeBadge = document.getElementById('rosbridge-status-label');
 
-  if (motionStatus === 'running') {
-    motionCircle.style.backgroundColor = 'green';
-  } else {
-    motionCircle.style.backgroundColor = 'red';
-  }
-
-  if (displayStatus === 'running') {
-    displayCircle.style.backgroundColor = 'green';
-  } else {
-    displayCircle.style.backgroundColor = 'red';
-  }
-
-  if (guiStatus === 'running') {
-    guiCircle.style.backgroundColor = 'green';
-  } else {
-    guiCircle.style.backgroundColor = 'red';
-  }
+  motionBadge.style.backgroundColor = motionStatus ? 'green' : 'red';
+  displayBadge.style.backgroundColor = displayStatus ? 'green' : 'red';
+  bridgeBadge.style.backgroundColor = bridgeStatus ? 'green' : 'red';
 }

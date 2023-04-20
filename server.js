@@ -26,14 +26,14 @@ const server = http.createServer(app);
 const wss = new WebSocket.Server({ server });
 
 // Initialize status variables
-const status = {
-  motion: true,
-  display: true,
-  gui: true
+var status = {
+  motion: 0,
+  display: 0,
+  rosbridge: 0
 };
 
 // Load resources
-app.use(express.static('public'));
+app.use('/public', express.static(__dirname + '/public'));
 
 // Serve the status-bar.js file to the client
 app.get('/status-bar.js', (req, res) => {
@@ -44,10 +44,51 @@ wss.on('connection', (socket) => {
     console.log('WebSocket connected');
 
     // Subscribe to ROS topics
+    const displayServiceStatusListener = new ROSLIB.Topic({
+      ros: ros,
+      name: '/display_status',
+      messageType: 'std_msgs/Int32'
+    });
+
+    const motionServiceStatusListener = new ROSLIB.Topic({
+      ros: ros,
+      name: '/motion_status',
+      messageType: 'std_msgs/Int32'
+    });
+
+    const rosbridgeServiceStatusListener = new ROSLIB.Topic({
+      ros: ros,
+      name: '/rosbridge_status',
+      messageType: 'std_msgs/Int32'
+    });
+
     const ultrasonicDataListener = new ROSLIB.Topic({
-        ros: ros,
-        name: '/ultrasonic_data',
-        messageType: 'std_msgs/Int32MultiArray'
+      ros: ros,
+      name: '/ultrasonic_data',
+      messageType: 'std_msgs/Int32MultiArray'
+    });
+    
+    // Listeners.
+
+    displayServiceStatusListener.subscribe((message) => {
+      if (message.data != status.display) {
+        status.display = message.data;
+        updateStatus(socket, status);
+      }
+    });
+
+    motionServiceStatusListener.subscribe((message) => {
+      if (message.data != status.motion) {
+        status.motion = message.data;
+        updateStatus(socket, status);
+      }
+    });
+
+    rosbridgeServiceStatusListener.subscribe((message) => {
+      if (message.data != status.rosbridge) {
+        status.rosbridge = message.data;
+        updateStatus(socket, status);
+      }
     });
 
     // When a message is received on the "ultrasonic_data" topic, send the data to the front-end
@@ -60,11 +101,7 @@ wss.on('connection', (socket) => {
     });
 
     // Send initial status on connection
-    const statusData = {
-      topic: 'status',
-      data: status
-    }
-    socket.send(JSON.stringify(statusData));
+    updateStatus(socket, status)
 });
 
 // Start server
@@ -72,38 +109,12 @@ server.listen(8080, 'localhost', () => {
   console.log('Server started on localhost:8080');
 });
 
-// Get the status of each service
-function getStatus() {
-  // const motion = spawn('systemctl', ['is-active', 'motion']);
-  // motion.stdout.on('data', (data) => {
-  //   motionStatus = data.toString().trim() === 'active';
-  // });
+// Helpers
 
-  // const display = spawn('systemctl', ['is-active', 'display']);
-  // display.stdout.on('data', (data) => {
-  //   displayStatus = data.toString().trim() === 'active';
-  // });
-
-  // const gui = spawn('systemctl', ['is-active', 'gui']);
-  // gui.stdout.on('data', (data) => {
-  //   guiStatus = data.toString().trim() === 'active';
-
-  //   // Emit status update over WebSocket connection
-  //   wss.clients.forEach((client) => {
-  //     client.send(JSON.stringify({
-  //       type: 'status',
-  //       motion: motionStatus,
-  //       display: displayStatus,
-  //       gui: guiStatus
-  //     }));
-  //   });
-  // });
+function updateStatus(socket, data) {
+  const statusData = {
+    topic: 'status',
+    data: data
+  }
+  socket.send(JSON.stringify(statusData));
 }
-
-// Get status on startup
-getStatus();
-
-// Poll for status updates every 5 seconds
-setInterval(() => {
-  getStatus();
-}, 5000);
